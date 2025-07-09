@@ -1,7 +1,7 @@
 replicaCount: 2
 
 image:
-  repository: ВАШТАКАУНТ.dkr.ecr.eu-north-1.amazonaws.com/lesson-7-django-app
+  repository: 559846689761.dkr.ecr.eu-north-1.amazonaws.com/lesson-7-django-app
   pullPolicy: Always
   tag: "latest"
 
@@ -27,7 +27,6 @@ resources:
     cpu: 250m
     memory: 256Mi
 
-
 config:
   SECRET_KEY: "django-insecure-u(qc9*j0w=ut5db3f#izfz_8szd7rruds!p8p5hgwz0in=+s7t"
   DEBUG: "False"
@@ -37,25 +36,6 @@ config:
   POSTGRES_PASSWORD: "mypassword"
   POSTGRES_HOST: "postgres"
   POSTGRES_PORT: "5432"
-
-
-postgresql:
-  enabled: true
-  image:
-    repository: postgres
-    tag: "13"
-  
-  persistence:
-    enabled: true
-    size: 8Gi
-  
-  resources:
-    limits:
-      cpu: 500m
-      memory: 512Mi
-    requests:
-      cpu: 250m
-      memory: 256Mi
 
 nodeSelector: {}
 tolerations: []
