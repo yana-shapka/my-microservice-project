@@ -144,10 +144,10 @@ resource "aws_eks_addon" "kube_proxy" {
 # IAM policy attachment 
 resource "aws_iam_role_policy_attachment" "node_group_ebs_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEBSCSIDriverPolicy"
-  role       = aws_iam_role.node_group_role.name
+  role       = aws_iam_role.eks_node_group_role.name
 }
 
 resource "aws_iam_role_policy_attachment" "node_group_ec2_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
-  role       = aws_iam_role.node_group_role.name
+  role       = aws_iam_role.eks_node_group_role.name
 }
