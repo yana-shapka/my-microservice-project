@@ -1,5 +1,3 @@
-# Замініть блок terraform та додайте провайдери
-cat > main.tf << 'EOF'
 terraform {
   required_version = ">= 1.0"
   required_providers {
@@ -95,8 +93,6 @@ module "jenkins" {
   cluster_name     = module.eks.cluster_name
   cluster_endpoint = module.eks.cluster_endpoint
   namespace        = "jenkins"
-  
-  depends_on = [module.eks]
 }
 
 # Argo CD Module  
@@ -106,7 +102,4 @@ module "argo_cd" {
   cluster_name     = module.eks.cluster_name
   cluster_endpoint = module.eks.cluster_endpoint
   namespace        = "argocd"
-  
-  depends_on = [module.eks]
 }
-EOF
