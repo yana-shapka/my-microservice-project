@@ -20,6 +20,9 @@ resource "helm_release" "argocd" {
   namespace  = kubernetes_namespace.argocd.metadata[0].name
   version    = "5.51.6"
 
+  timeout = 900   
+  wait    = true  
+
   values = [
     file("${path.module}/values.yaml")
   ]

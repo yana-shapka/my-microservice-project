@@ -1,4 +1,4 @@
-# Kubernetes namespace для Jenkins
+# Kubernetes 
 resource "kubernetes_namespace" "jenkins" {
   metadata {
     name = var.namespace
@@ -12,6 +12,9 @@ resource "helm_release" "jenkins" {
   chart      = "jenkins"
   version    = "4.8.3"
   namespace  = kubernetes_namespace.jenkins.metadata[0].name
+
+  timeout = 1200  
+  wait    = true  
 
   values = [
     file("${path.module}/values.yaml")
