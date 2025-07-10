@@ -52,3 +52,25 @@ module "eks" {
   node_group_max_size     = 6
   node_group_desired_size = 2
 }
+
+# Jenkins Module
+module "jenkins" {
+  source = "./modules/jenkins"
+  
+  cluster_name     = module.eks.cluster_name
+  cluster_endpoint = module.eks.cluster_endpoint
+  namespace        = "jenkins"
+  
+  depends_on = [module.eks]
+}
+
+# Argo CD Module  
+module "argo_cd" {
+  source = "./modules/argo_cd"
+  
+  cluster_name     = module.eks.cluster_name
+  cluster_endpoint = module.eks.cluster_endpoint
+  namespace        = "argocd"
+  
+  depends_on = [module.eks]
+}
