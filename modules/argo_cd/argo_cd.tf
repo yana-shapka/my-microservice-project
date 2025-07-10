@@ -1,57 +1,36 @@
-# Kubernetes namespace для Argo CD
-resource "kubernetes_namespace" "argocd" {
-  metadata {
-    name = var.namespace
+cat > modules/argo_cd/providers.tf << 'EOF'
+terraform {
+  required_providers {
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 2.12"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.24"
+    }
   }
 }
 
-# Namespace для Django застосунку
-resource "kubernetes_namespace" "django_app" {
-  metadata {
-    name = var.django_app_namespace
-  }
+data "aws_eks_cluster" "cluster" {
+  name = var.cluster_name
 }
 
-# Argo CD Helm Release
-resource "helm_release" "argocd" {
-  name       = "argocd"
-  repository = "https://argoproj.github.io/argo-helm"
-  chart      = "argo-cd"
-  version    = var.chart_version
-  namespace  = kubernetes_namespace.argocd.metadata[0].name
-
-  values = [
-    file("${path.module}/values.yaml")
-  ]
-
-  set {
-    name  = "server.service.type"
-    value = "LoadBalancer"
-  }
-
-  depends_on = [kubernetes_namespace.argocd]
+data "aws_eks_cluster_auth" "cluster" {
+  name = var.cluster_name
 }
 
-# Argo CD Applications Helm Chart
-resource "helm_release" "argocd_apps" {
-  name      = "argocd-apps"
-  chart     = "${path.module}/charts"
-  namespace = kubernetes_namespace.argocd.metadata[0].name
-
-  set {
-    name  = "gitRepoUrl"
-    value = var.git_repo_url
-  }
-
-  set {
-    name  = "targetRevision"
-    value = var.git_target_revision
-  }
-
-  set {
-    name  = "djangoAppNamespace"
-    value = var.django_app_namespace
-  }
-
-  depends_on = [helm_release.argocd]
+provider "kubernetes" {
+  host                   = data.aws_eks_cluster.cluster.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.cluster.token
 }
+
+provider "helm" {
+  kubernetes {
+    host                   = data.aws_eks_cluster.cluster.endpoint
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
+    token                  = data.aws_eks_cluster_auth.cluster.token
+  }
+}
+EOF
