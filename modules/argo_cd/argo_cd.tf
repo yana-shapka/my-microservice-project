@@ -1,4 +1,3 @@
-cat > modules/argo_cd/providers.tf << 'EOF'
 terraform {
   required_providers {
     helm = {
@@ -33,4 +32,3 @@ provider "helm" {
     token                  = data.aws_eks_cluster_auth.cluster.token
   }
 }
-EOF
