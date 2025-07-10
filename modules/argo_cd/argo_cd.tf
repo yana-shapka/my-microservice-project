@@ -1,34 +1,28 @@
-terraform {
-  required_providers {
-    helm = {
-      source  = "hashicorp/helm"
-      version = "~> 2.12"
-    }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 2.24"
-    }
+# Kubernetes namespace for Argo CD
+resource "kubernetes_namespace" "argocd" {
+  metadata {
+    name = var.namespace
   }
 }
 
-data "aws_eks_cluster" "cluster" {
-  name = var.cluster_name
-}
-
-data "aws_eks_cluster_auth" "cluster" {
-  name = var.cluster_name
-}
-
-provider "kubernetes" {
-  host                   = data.aws_eks_cluster.cluster.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
-  token                  = data.aws_eks_cluster_auth.cluster.token
-}
-
-provider "helm" {
-  kubernetes {
-    host                   = data.aws_eks_cluster.cluster.endpoint
-    cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
-    token                  = data.aws_eks_cluster_auth.cluster.token
+# Kubernetes namespace for Django app
+resource "kubernetes_namespace" "django_app" {
+  metadata {
+    name = "django-app"
   }
+}
+
+# Argo CD Helm release
+resource "helm_release" "argocd" {
+  name       = "argocd"
+  repository = "https://argoproj.github.io/argo-helm"
+  chart      = "argo-cd"
+  namespace  = kubernetes_namespace.argocd.metadata[0].name
+  version    = "5.51.6"
+
+  values = [
+    file("${path.module}/values.yaml")
+  ]
+
+  depends_on = [kubernetes_namespace.argocd]
 }
