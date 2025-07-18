@@ -19,7 +19,7 @@ locals {
   # Aurora engine based on regular engine
   aurora_engine = var.engine == "postgres" ? "aurora-postgresql" : "aurora-mysql"
 
-  # Default parameters optimized for Django applications
+# Default parameters optimized for Django applications
   default_parameters = var.engine == "postgres" ? [
     {
       name  = "max_connections"
