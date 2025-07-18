@@ -11,14 +11,10 @@ locals {
   db_port = var.port != null ? var.port : (var.engine == "postgres" ? 5432 : 3306)
 
   # Parameter group family based on engine and version
-  parameter_group_family = var.engine == "postgres" ? 
-    "postgres${split(".", var.engine_version)[0]}" : 
-    "mysql${split(".", var.engine_version)[0]}.${split(".", var.engine_version)[1]}"
+ parameter_group_family = var.engine == "postgres" ? "postgres${split(".", var.engine_version)[0]}" : "mysql${split(".", var.engine_version)[0]}.${split(".", var.engine_version)[1]}"
 
   # Aurora cluster parameter group family
-  aurora_cluster_family = var.engine == "postgres" ? 
-    "aurora-postgresql${split(".", var.engine_version)[0]}" : 
-    "aurora-mysql${split(".", var.engine_version)[0]}.${split(".", var.engine_version)[1]}"
+  aurora_cluster_family = var.engine == "postgres" ? "aurora-postgresql${split(".", var.engine_version)[0]}" : "aurora-mysql${split(".", var.engine_version)[0]}.${split(".", var.engine_version)[1]}"
 
   # Aurora engine based on regular engine
   aurora_engine = var.engine == "postgres" ? "aurora-postgresql" : "aurora-mysql"

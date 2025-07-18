@@ -35,8 +35,7 @@ resource "aws_rds_cluster" "aurora" {
   # Deletion protection
   deletion_protection       = var.deletion_protection
   skip_final_snapshot      = var.skip_final_snapshot
-  final_snapshot_identifier = var.skip_final_snapshot ? null : 
-    "${var.project_name}-${var.environment}-aurora-final-snapshot-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"
+  final_snapshot_identifier = var.skip_final_snapshot ? null : "${var.project_name}-${var.environment}-aurora-final-snapshot-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"
 
   # Enable logging
   enabled_cloudwatch_logs_exports = var.engine == "postgres" ? ["postgresql"] : ["error", "general", "slowquery"]
