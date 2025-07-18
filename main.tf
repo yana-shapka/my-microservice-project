@@ -155,7 +155,7 @@ module "rds_postgres" {
   deletion_protection     = false
   skip_final_snapshot     = true
   
-  # Кастомні параметри для Django
+  # Кастомні параметри для Django (БЕЗ timezone - він уже є в default_parameters)
   custom_db_parameters = [
     {
       name  = "max_connections"
@@ -164,10 +164,6 @@ module "rds_postgres" {
     {
       name  = "checkpoint_completion_target"
       value = "0.9"
-    },
-    {
-      name  = "timezone"
-      value = "UTC"
     }
   ]
   
