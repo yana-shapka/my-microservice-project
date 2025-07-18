@@ -133,7 +133,7 @@ module "rds_postgres" {
   # Основні налаштування
   use_aurora     = false
   engine         = "postgres"
-  engine_version = "13.7"
+  engine_version = "16.9"
   instance_class = "db.t3.micro"
   
   # База даних для Django
