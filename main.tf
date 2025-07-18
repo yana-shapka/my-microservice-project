@@ -13,6 +13,10 @@ terraform {
       source  = "hashicorp/helm"
       version = "~> 2.12"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.1"
+    }
   }
 }
 
@@ -52,7 +56,7 @@ module "s3_backend" {
   table_name  = "terraform-locks"
 }
 
-# VPC Module  
+# VPC Module
 module "vpc" {
   source             = "./modules/vpc"
   vpc_cidr_block     = "10.0.0.0/16"
@@ -76,14 +80,104 @@ module "eks" {
   cluster_name    = "lesson-7-eks-cluster"
   cluster_version = "1.28"
   
-  vpc_id          = module.vpc.vpc_id
-  subnet_ids      = concat(module.vpc.private_subnet_ids, module.vpc.public_subnet_ids)
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = concat(module.vpc.private_subnet_ids, module.vpc.public_subnet_ids)
   
   node_group_name         = "lesson-7-nodes"
   node_group_capacity     = "t3.medium"
   node_group_min_size     = 2
   node_group_max_size     = 6
   node_group_desired_size = 2
+}
+
+# Security Group для доступу EKS до RDS
+resource "aws_security_group" "eks_to_rds" {
+  name        = "lesson-7-eks-to-rds"
+  description = "Allow EKS nodes to access RDS databases"
+  vpc_id      = module.vpc.vpc_id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "lesson-7-eks-to-rds"
+    Project     = "lesson-7"
+    Environment = "dev"
+    ManagedBy   = "terraform"
+  }
+}
+
+# Security Group Rule для EKS Node Group -> RDS
+resource "aws_security_group_rule" "eks_nodes_to_rds" {
+  count                    = 1
+  type                     = "ingress"
+  from_port               = 5432
+  to_port                 = 5432
+  protocol                = "tcp"
+  source_security_group_id = aws_security_group.eks_to_rds.id
+  security_group_id       = aws_security_group.eks_to_rds.id
+  description             = "Allow EKS nodes to access PostgreSQL"
+}
+
+# RDS Module - PostgreSQL для Django (Development)
+module "rds_postgres" {
+  source = "./modules/rds"
+  
+  project_name = "lesson-7"
+  environment  = "dev"
+  
+  # Основні налаштування
+  use_aurora     = false
+  engine         = "postgres"
+  engine_version = "13.7"
+  instance_class = "db.t3.micro"
+  
+  # База даних для Django
+  db_name         = "djangodb"
+  master_username = "djangouser"
+  master_password = null  # Автоматична генерація паролю
+  
+  # Мережа
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.private_subnet_ids
+  
+  # Дозволяємо доступ з приватних підмереж (де знаходяться EKS nodes)
+  allowed_cidr_blocks = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+  
+  # Dev налаштування
+  multi_az                = false
+  storage_encrypted       = true
+  backup_retention_period = 3
+  deletion_protection     = false
+  skip_final_snapshot     = true
+  
+  # Кастомні параметри для Django
+  custom_db_parameters = [
+    {
+      name  = "max_connections"
+      value = "200"
+    },
+    {
+      name  = "checkpoint_completion_target"
+      value = "0.9"
+    },
+    {
+      name  = "timezone"
+      value = "UTC"
+    }
+  ]
+  
+  tags = {
+    Project     = "lesson-7"
+    Environment = "dev"
+    ManagedBy   = "terraform"
+    Module      = "rds"
+    Purpose     = "django-database"
+  }
 }
 
 # Jenkins Module
@@ -95,7 +189,7 @@ module "jenkins" {
   namespace        = "jenkins"
 }
 
-# Argo CD Module  
+# Argo CD Module
 module "argo_cd" {
   source = "./modules/argo_cd"
   
