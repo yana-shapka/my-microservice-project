@@ -30,10 +30,6 @@ locals {
       value = "all"
     },
     {
-      name  = "work_mem"
-      value = "4MB"
-    },
-    {
       name  = "shared_preload_libraries"
       value = "pg_stat_statements"
     },
