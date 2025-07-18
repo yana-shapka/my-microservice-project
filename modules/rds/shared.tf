@@ -122,11 +122,14 @@ resource "aws_db_parameter_group" "aurora_instance" {
   }
 }
 
-# Random password if not provided
+# Random password if not provided (exclude problematic characters)
 resource "random_password" "master" {
   count   = var.master_password == null ? 1 : 0
   length  = 16
   special = true
+  
+  # Exclude problematic characters for RDS
+  override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
 # KMS Key for encryption
