@@ -19,20 +19,8 @@ locals {
   # Aurora engine based on regular engine
   aurora_engine = var.engine == "postgres" ? "aurora-postgresql" : "aurora-mysql"
 
-  # Default parameters optimized for Django applications
+  # Safe dynamic parameters only (no static parameters that require restart)
   default_parameters = var.engine == "postgres" ? [
-    {
-      name  = "max_connections"
-      value = "100"
-    },
-    {
-      name  = "log_statement"
-      value = "all"
-    },
-    {
-      name  = "shared_preload_libraries"
-      value = "pg_stat_statements"
-    },
     {
       name  = "log_min_duration_statement"
       value = "1000"
@@ -42,10 +30,6 @@ locals {
       value = "UTC"
     }
   ] : [
-    {
-      name  = "max_connections"
-      value = "100"
-    },
     {
       name  = "general_log"
       value = "1"
@@ -57,10 +41,6 @@ locals {
     {
       name  = "long_query_time"
       value = "1"
-    },
-    {
-      name  = "innodb_buffer_pool_size"
-      value = "{DBInstanceClassMemory*3/4}"
     },
     {
       name  = "time_zone"
@@ -180,16 +160,12 @@ resource "aws_db_parameter_group" "aurora_instance" {
   name   = "${var.project_name}-${var.environment}-aurora-instance-params"
   family = local.parameter_group_family
 
-  # Aurora instance parameters (different from cluster parameters)
+  # Aurora instance parameters (different from cluster parameters) - minimal safe set
   dynamic "parameter" {
     for_each = var.engine == "postgres" ? [
       {
-        name  = "shared_preload_libraries"
-        value = "pg_stat_statements"
-      },
-      {
-        name  = "pg_stat_statements.track"
-        value = "ALL"
+        name  = "log_min_duration_statement"
+        value = "1000"
       }
     ] : [
       {
