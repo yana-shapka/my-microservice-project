@@ -72,11 +72,11 @@ locals {
     }
   ]
 
-  # Merge default and custom parameters, removing duplicates by parameter name
-  all_parameters = {
-    for param in concat(local.default_parameters, var.custom_db_parameters) :
-    param.name => param
-  }
+  # Merge default and custom parameters, custom parameters override defaults
+  all_parameters = merge(
+    { for param in local.default_parameters : param.name => param },
+    { for param in var.custom_db_parameters : param.name => param }
+  )
   
   # Convert back to list format for dynamic block
   final_parameters = values(local.all_parameters)
