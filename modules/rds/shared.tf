@@ -11,7 +11,7 @@ locals {
   db_port = var.port != null ? var.port : (var.engine == "postgres" ? 5432 : 3306)
 
   # Parameter group family based on engine and version
- parameter_group_family = var.engine == "postgres" ? "postgres${split(".", var.engine_version)[0]}" : "mysql${split(".", var.engine_version)[0]}.${split(".", var.engine_version)[1]}"
+  parameter_group_family = var.engine == "postgres" ? "postgres${split(".", var.engine_version)[0]}" : "mysql${split(".", var.engine_version)[0]}.${split(".", var.engine_version)[1]}"
 
   # Aurora cluster parameter group family
   aurora_cluster_family = var.engine == "postgres" ? "aurora-postgresql${split(".", var.engine_version)[0]}" : "aurora-mysql${split(".", var.engine_version)[0]}.${split(".", var.engine_version)[1]}"
@@ -19,7 +19,7 @@ locals {
   # Aurora engine based on regular engine
   aurora_engine = var.engine == "postgres" ? "aurora-postgresql" : "aurora-mysql"
 
-# Default parameters optimized for Django applications
+  # Default parameters optimized for Django applications
   default_parameters = var.engine == "postgres" ? [
     {
       name  = "max_connections"
@@ -72,8 +72,14 @@ locals {
     }
   ]
 
-  # Merge default and custom parameters
-  all_parameters = concat(local.default_parameters, var.custom_db_parameters)
+  # Merge default and custom parameters, removing duplicates by parameter name
+  all_parameters = {
+    for param in concat(local.default_parameters, var.custom_db_parameters) :
+    param.name => param
+  }
+  
+  # Convert back to list format for dynamic block
+  final_parameters = values(local.all_parameters)
 }
 
 # DB Subnet Group
@@ -133,7 +139,7 @@ resource "aws_db_parameter_group" "main" {
   family = local.parameter_group_family
 
   dynamic "parameter" {
-    for_each = local.all_parameters
+    for_each = local.final_parameters
     content {
       name  = parameter.value.name
       value = parameter.value.value
@@ -156,7 +162,7 @@ resource "aws_rds_cluster_parameter_group" "aurora" {
   family = local.aurora_cluster_family
 
   dynamic "parameter" {
-    for_each = local.all_parameters
+    for_each = local.final_parameters
     content {
       name  = parameter.value.name
       value = parameter.value.value
