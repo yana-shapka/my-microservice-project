@@ -18,44 +18,6 @@ locals {
 
   # Aurora engine based on regular engine
   aurora_engine = var.engine == "postgres" ? "aurora-postgresql" : "aurora-mysql"
-
-  # Safe dynamic parameters only (no static parameters that require restart)
-  default_parameters = var.engine == "postgres" ? [
-    {
-      name  = "log_min_duration_statement"
-      value = "1000"
-    },
-    {
-      name  = "timezone"
-      value = "UTC"
-    }
-  ] : [
-    {
-      name  = "general_log"
-      value = "1"
-    },
-    {
-      name  = "slow_query_log"
-      value = "1"
-    },
-    {
-      name  = "long_query_time"
-      value = "1"
-    },
-    {
-      name  = "time_zone"
-      value = "UTC"
-    }
-  ]
-
-  # Merge default and custom parameters, custom parameters override defaults
-  all_parameters = merge(
-    { for param in local.default_parameters : param.name => param },
-    { for param in var.custom_db_parameters : param.name => param }
-  )
-  
-  # Convert back to list format for dynamic block
-  final_parameters = values(local.all_parameters)
 }
 
 # DB Subnet Group
@@ -108,20 +70,15 @@ resource "aws_security_group" "db" {
   })
 }
 
-# Parameter Group for RDS Instance
+# Empty Parameter Group for RDS Instance (will use default PostgreSQL settings)
 resource "aws_db_parameter_group" "main" {
   count  = var.use_aurora ? 0 : 1
   name   = "${var.project_name}-${var.environment}-db-params"
   family = local.parameter_group_family
 
-  dynamic "parameter" {
-    for_each = local.final_parameters
-    content {
-      name  = parameter.value.name
-      value = parameter.value.value
-    }
-  }
-
+  # NO CUSTOM PARAMETERS - using default PostgreSQL settings
+  # Custom parameters can be added later after RDS instance is created
+  
   tags = merge(local.common_tags, {
     Name = "${var.project_name}-${var.environment}-db-params"
   })
@@ -131,20 +88,14 @@ resource "aws_db_parameter_group" "main" {
   }
 }
 
-# Cluster Parameter Group for Aurora
+# Empty Cluster Parameter Group for Aurora (if needed)
 resource "aws_rds_cluster_parameter_group" "aurora" {
   count  = var.use_aurora ? 1 : 0
   name   = "${var.project_name}-${var.environment}-aurora-cluster-params"
   family = local.aurora_cluster_family
 
-  dynamic "parameter" {
-    for_each = local.final_parameters
-    content {
-      name  = parameter.value.name
-      value = parameter.value.value
-    }
-  }
-
+  # NO CUSTOM PARAMETERS - using default Aurora settings
+  
   tags = merge(local.common_tags, {
     Name = "${var.project_name}-${var.environment}-aurora-cluster-params"
   })
@@ -154,31 +105,14 @@ resource "aws_rds_cluster_parameter_group" "aurora" {
   }
 }
 
-# DB Parameter Group for Aurora instances
+# Empty DB Parameter Group for Aurora instances (if needed)
 resource "aws_db_parameter_group" "aurora_instance" {
   count  = var.use_aurora ? 1 : 0
   name   = "${var.project_name}-${var.environment}-aurora-instance-params"
   family = local.parameter_group_family
 
-  # Aurora instance parameters (different from cluster parameters) - minimal safe set
-  dynamic "parameter" {
-    for_each = var.engine == "postgres" ? [
-      {
-        name  = "log_min_duration_statement"
-        value = "1000"
-      }
-    ] : [
-      {
-        name  = "innodb_print_all_deadlocks"
-        value = "1"
-      }
-    ]
-    content {
-      name  = parameter.value.name
-      value = parameter.value.value
-    }
-  }
-
+  # NO CUSTOM PARAMETERS - using default Aurora instance settings
+  
   tags = merge(local.common_tags, {
     Name = "${var.project_name}-${var.environment}-aurora-instance-params"
   })
