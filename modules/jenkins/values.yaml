@@ -31,17 +31,17 @@ controller:
     passwordKey: jenkins-admin-password
 
   # Plugins to install
-installPlugins:
-  - kubernetes
-  - workflow-aggregator
-  - git
-  - configuration-as-code
-  - pipeline-stage-view:2.21  
-  - docker-workflow
-  - blueocean
-  - github
-  - pipeline-github-lib
-  - aws-credentials
+  installPlugins:
+    - kubernetes
+    - workflow-aggregator
+    - git
+    - configuration-as-code
+    - pipeline-stage-view:2.21  
+    - docker-workflow
+    - blueocean
+    - github
+    - pipeline-github-lib
+    - aws-credentials
 
   # Additional environment variables
   additionalExistingSecrets:
