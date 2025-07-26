@@ -67,6 +67,23 @@ output "postgres_db_endpoint" {
   value       = module.rds_postgres.db_endpoint
 }
 
+# Monitoring outputs
+output "prometheus_url" {
+  description = "Prometheus server URL"
+  value       = module.monitoring.prometheus_url
+}
+
+output "grafana_url" {
+  description = "Grafana dashboard URL"  
+  value       = module.monitoring.grafana_url
+}
+
+output "grafana_admin_password" {
+  description = "Grafana admin password"
+  value       = module.monitoring.grafana_admin_password
+  sensitive   = true
+}
+
 output "postgres_db_port" {
   description = "PostgreSQL database port"
   value       = module.rds_postgres.db_port

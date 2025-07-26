@@ -193,3 +193,21 @@ module "argo_cd" {
   cluster_endpoint = module.eks.cluster_endpoint
   namespace        = "argocd"
 }
+
+# Monitoring Module (Prometheus + Grafana)
+module "monitoring" {
+  source = "./modules/monitoring"
+  
+  cluster_name     = module.eks.cluster_name
+  cluster_endpoint = module.eks.cluster_endpoint
+  namespace        = "monitoring"
+  
+  # Storage configuration (smaller sizes for simplicity)
+  prometheus_storage_size = "20Gi"
+  grafana_storage_size    = "5Gi"
+  
+  # Grafana configuration
+  grafana_admin_password = "GrafanaAdmin123!"  # Change this to a secure password
+  
+  depends_on = [module.eks]
+}
