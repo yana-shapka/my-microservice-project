@@ -1,7 +1,10 @@
 controller:
   # Jenkins Controller Configuration
-  image: "jenkins/jenkins"
-  tag: "2.426.1-lts"
+  image:
+    registry: docker.io
+    repository: jenkins/jenkins
+    tag: "2.426.1-lts"
+    pullPolicy: Always
   
   # Resources
   resources:
@@ -26,9 +29,8 @@ controller:
         
   # Security
   admin:
-    existingSecret: ""
-    userKey: jenkins-admin-user
-    passwordKey: jenkins-admin-password
+    username: admin
+    password: admin123
 
   # Plugins to install
   installPlugins:
@@ -43,41 +45,13 @@ controller:
     - pipeline-github-lib
     - aws-credentials
 
-  # Additional environment variables
-  additionalExistingSecrets:
-    - name: aws-credentials
-      keyName: aws-access-key-id
-    - name: aws-credentials
-      keyName: aws-secret-access-key
-
 # Agent configuration
 agent:
   enabled: true
-  image: "jenkins/inbound-agent"
-  tag: "3107.v665000b_51092-5"
-  
-  # Kaniko agent for Docker builds
-  podTemplates:
-    kaniko: |
-      - name: kaniko
-        label: kaniko
-        serviceAccount: jenkins-admin
-        containers:
-        - name: kaniko
-          image: gcr.io/kaniko-project/executor:debug
-          command: ["/busybox/cat"]
-          tty: true
-          volumeMounts:
-          - name: aws-secret
-            mountPath: /root/.aws/
-        - name: git
-          image: alpine/git:latest
-          command: ["/bin/sh", "-c", "cat"]
-          tty: true
-        volumes:
-        - name: aws-secret
-          secret:
-            secretName: aws-credentials
+  image:
+    registry: docker.io
+    repository: jenkins/inbound-agent
+    tag: "3107.v665000b_51092-5"
 
 # Persistence
 persistence:
