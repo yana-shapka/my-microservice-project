@@ -1,7 +1,7 @@
 # Admin configuration
 admin:
   user: admin
-  password: ${grafana_admin_password}
+  password: GrafanaAdmin123!
 
 # Service configuration
 service:
@@ -12,7 +12,7 @@ service:
 persistence:
   enabled: true
   storageClassName: gp2
-  size: ${grafana_storage_size}
+  size: 5Gi
   accessModes:
     - ReadWriteOnce
 
@@ -32,7 +32,7 @@ datasources:
     datasources:
     - name: Prometheus
       type: prometheus
-      url: http://${prometheus_service}.${namespace}.svc.cluster.local
+      url: http://prometheus-server.monitoring.svc.cluster.local
       access: proxy
       isDefault: true
       editable: true
@@ -77,7 +77,7 @@ grafana.ini:
     enabled: false
   security:
     admin_user: admin
-    admin_password: ${grafana_admin_password}
+    admin_password: GrafanaAdmin123!
   users:
     viewers_can_edit: false
   dashboards:
