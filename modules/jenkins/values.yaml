@@ -19,13 +19,8 @@ controller:
     username: admin
     password: admin123
 
-  # Only essential, stable plugins
-  installPlugins:
-    - kubernetes:latest
-    - workflow-aggregator:latest
-    - git:latest
-    - configuration-as-code:latest
-    - blueocean:latest
+
+  installPlugins: []
 
 persistence:
   enabled: true
